@@ -40,8 +40,9 @@ class QWeatherPlugin(Star):
     @filter.command("天气")
     async def cmd_weather(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        self._log(f"cmd weather args={args!r} location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_now(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "now")
         yield event.plain_result(self._format_now(data))
@@ -50,9 +51,16 @@ class QWeatherPlugin(Star):
     @filter.command("预报")
     async def cmd_forecast(self, event: AstrMessageEvent, location: str = "", days: int = 3):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
-        data = await self.service.weather_forecast(loc or None, days=days)
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        d = days
+        if len(args) >= 2:
+            try:
+                d = int(args[1])
+            except Exception:
+                pass
+        self._log(f"cmd forecast args={args!r} location_arg={location!r} days={d!r} resolved_loc={loc!r}")
+        data = await self.service.weather_forecast(loc or None, days=d)
         self._remember_context(event, self._resolve_location_name(data, loc), "forecast")
         yield event.plain_result(self._format_forecast(data))
 
@@ -60,9 +68,13 @@ class QWeatherPlugin(Star):
     @filter.command("小时预报")
     async def cmd_hourly(self, event: AstrMessageEvent, location: str = "", hours: str = "24h"):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
-        data = await self.service.weather_hourly(loc or None, hours=hours)
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        h = hours if hours in {"24h", "72h", "168h"} else "24h"
+        if len(args) >= 2 and args[1] in {"24h", "72h", "168h"}:
+            h = args[1]
+        self._log(f"cmd hourly args={args!r} location_arg={location!r} hours={h!r} resolved_loc={loc!r}")
+        data = await self.service.weather_hourly(loc or None, hours=h)
         self._remember_context(event, self._resolve_location_name(data, loc), "hourly")
         yield event.plain_result(self._format_hourly(data))
 
@@ -70,8 +82,9 @@ class QWeatherPlugin(Star):
     @filter.command("降水")
     async def cmd_rain(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        self._log(f"cmd rain args={args!r} location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_minutely_precipitation(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "rain")
         yield event.plain_result(self._format_rain(data))
@@ -80,8 +93,9 @@ class QWeatherPlugin(Star):
     @filter.command("预警")
     async def cmd_warning(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        self._log(f"cmd warning args={args!r} location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_warning(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "warning")
         yield event.plain_result(self._format_warning(data))
@@ -90,9 +104,16 @@ class QWeatherPlugin(Star):
     @filter.command("指数")
     async def cmd_indices(self, event: AstrMessageEvent, location: str = "", days: str = "1d", index_type: str = "all"):
         event.stop_event()
-        loc = location or self._get_session_location(event)
-        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
-        data = await self.service.weather_indices(loc or None, days=days, index_type=index_type)
+        args = self._command_args(event)
+        loc = (location or "").strip() or (args[0] if args else "") or self._get_session_location(event)
+        d = days if days in {"1d", "3d"} else "1d"
+        t = index_type
+        if len(args) >= 2 and args[1] in {"1d", "3d"}:
+            d = args[1]
+        if len(args) >= 3:
+            t = args[2]
+        self._log(f"cmd indices args={args!r} location_arg={location!r} days={d!r} type={t!r} resolved_loc={loc!r}")
+        data = await self.service.weather_indices(loc or None, days=d, index_type=t)
         self._remember_context(event, self._resolve_location_name(data, loc), "indices")
         yield event.plain_result(self._format_indices(data))
 
@@ -196,6 +217,18 @@ class QWeatherPlugin(Star):
     def _is_weather_query(self, text: str) -> bool:
         lower = text.lower()
         return any(k.lower() in lower for k in self.keywords)
+
+    def _command_args(self, event: AstrMessageEvent) -> list[str]:
+        msg = self._extract_text(event)
+        if not msg.startswith("/"):
+            return []
+        body = msg[1:].strip()
+        if not body:
+            return []
+        parts = body.split()
+        if not parts:
+            return []
+        return parts[1:]
 
     def _extract_text(self, event: AstrMessageEvent) -> str:
         try:

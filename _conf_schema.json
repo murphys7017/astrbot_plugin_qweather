@@ -27,7 +27,7 @@
   "default_location": {
     "type": "string",
     "description": "Default location when user does not provide one",
-    "default": "??"
+    "default": "Beijing"
   },
   "lang": {
     "type": "string",
@@ -38,7 +38,10 @@
     "type": "string",
     "description": "Temperature unit",
     "default": "m",
-    "options": ["m", "i"]
+    "options": [
+      "m",
+      "i"
+    ]
   },
   "warning_local_time": {
     "type": "bool",
@@ -63,7 +66,12 @@
   "weather_keywords": {
     "type": "list",
     "description": "Keywords for auto weather detection",
-    "default": ["??", "??", "??", "??", "??", "??", "weather", "forecast"]
+    "default": [
+      "weather",
+      "temperature",
+      "rain",
+      "forecast"
+    ]
   },
   "debug_log": {
     "type": "bool",
