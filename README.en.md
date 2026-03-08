@@ -50,3 +50,5 @@ pip install -r requirements.txt
 - `private_key_path`: absolute path of Ed25519 private key on server
 - `private_key_pem`: PEM key content. If set, it takes priority over `private_key_path`
 
+
+- `debug_log`: enable verbose debug logs for routing/key loading/API calls

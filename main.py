@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import re
 import sys
@@ -33,12 +33,15 @@ class QWeatherPlugin(Star):
         self.service = WeatherService(self._build_cfg(), Path(__file__).parent)
         self.keywords = self._load_keywords()
         self._session_memory: dict[str, dict[str, Any]] = {}
+        self.debug_log = self._to_bool(self.config.get("debug_log", False))
+        self._log_boot()
 
     @filter.command("weather")
     @filter.command("天气")
     async def cmd_weather(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_now(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "now")
         yield event.plain_result(self._format_now(data))
@@ -48,6 +51,7 @@ class QWeatherPlugin(Star):
     async def cmd_forecast(self, event: AstrMessageEvent, location: str = "", days: int = 3):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_forecast(loc or None, days=days)
         self._remember_context(event, self._resolve_location_name(data, loc), "forecast")
         yield event.plain_result(self._format_forecast(data))
@@ -57,6 +61,7 @@ class QWeatherPlugin(Star):
     async def cmd_hourly(self, event: AstrMessageEvent, location: str = "", hours: str = "24h"):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_hourly(loc or None, hours=hours)
         self._remember_context(event, self._resolve_location_name(data, loc), "hourly")
         yield event.plain_result(self._format_hourly(data))
@@ -66,6 +71,7 @@ class QWeatherPlugin(Star):
     async def cmd_rain(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_minutely_precipitation(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "rain")
         yield event.plain_result(self._format_rain(data))
@@ -75,6 +81,7 @@ class QWeatherPlugin(Star):
     async def cmd_warning(self, event: AstrMessageEvent, location: str = ""):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_warning(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "warning")
         yield event.plain_result(self._format_warning(data))
@@ -84,6 +91,7 @@ class QWeatherPlugin(Star):
     async def cmd_indices(self, event: AstrMessageEvent, location: str = "", days: str = "1d", index_type: str = "all"):
         event.stop_event()
         loc = location or self._get_session_location(event)
+        self._log(f"cmd location_arg={location!r} resolved_loc={loc!r}")
         data = await self.service.weather_indices(loc or None, days=days, index_type=index_type)
         self._remember_context(event, self._resolve_location_name(data, loc), "indices")
         yield event.plain_result(self._format_indices(data))
@@ -107,6 +115,7 @@ class QWeatherPlugin(Star):
 
         location = self._extract_location(msg) or self._get_session_location(event)
         event.stop_event()
+        self._log(f"auto_detect msg={msg!r} intent={intent!r} follow_up={follow_up} location={location!r}")
 
         if follow_up and not self._is_weather_query(msg):
             reply = await self._handle_follow_up(event, msg, location)
@@ -157,6 +166,7 @@ class QWeatherPlugin(Star):
             lang=self.config.get("lang", "zh"),
             unit=self.config.get("unit", "m"),
             warning_local_time=self._to_bool(self.config.get("warning_local_time", False)),
+            debug_log=self._to_bool(self.config.get("debug_log", False)),
             timeout_seconds=int(self.config.get("timeout_seconds", 15)),
             openmeteo_fallback=bool(self.config.get("openmeteo_fallback", True)),
         )
@@ -407,12 +417,26 @@ class QWeatherPlugin(Star):
     async def terminate(self):
         logger.info("qweather_astrbot plugin terminated")
 
+    def _log(self, message: str) -> None:
+        if self.debug_log:
+            logger.info(f"[qweather_astrbot] {message}")
+
+    def _log_boot(self) -> None:
+        svc_mod = sys.modules.get(WeatherConfig.__module__)
+        svc_file = getattr(svc_mod, "__file__", "<unknown>")
+        key_mode = "pem" if (self.config.get("private_key_pem") or "").strip() else "path"
+        logger.info(
+            f"[qweather_astrbot] boot module={WeatherConfig.__module__} file={svc_file} "
+            f"debug_log={self.debug_log} key_mode={key_mode} default_location={self.config.get('default_location')}"
+        )
+
     def _to_bool(self, v: Any) -> bool:
         if isinstance(v, bool):
             return v
         if isinstance(v, str):
             return v.strip().lower() in {"1", "true", "yes", "y", "on"}
         return bool(v)
+
 
 
 

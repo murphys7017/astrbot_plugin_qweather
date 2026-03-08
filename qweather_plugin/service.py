@@ -60,6 +60,7 @@ class WeatherConfig:
     warning_local_time: bool = False
     timeout_seconds: int = 15
     openmeteo_fallback: bool = True
+    debug_log: bool = False
 
 
 class WeatherService:
@@ -68,6 +69,10 @@ class WeatherService:
         self.base_dir = base_dir
         self._jwt_cache: Optional[Dict[str, Any]] = None
         self._jwt_lock = asyncio.Lock()
+        self._log(
+            f"service init host={cfg.api_host} lang={cfg.lang} unit={cfg.unit} "
+            f"fallback={cfg.openmeteo_fallback} default_location={cfg.default_location}"
+        )
 
     async def weather_now(self, location: Optional[str] = None) -> Dict[str, Any]:
         loc = (location or self.cfg.default_location or "").strip()
@@ -92,6 +97,7 @@ class WeatherService:
                     headers=headers,
                 )
             data = resp.json()
+            self._log(f"weather_now api_code={data.get('code')} location={resolved.get('locationId')}")
             if data.get("code") != "200":
                 if self.cfg.openmeteo_fallback:
                     return await self._weather_now_openmeteo(loc)
@@ -450,10 +456,12 @@ class WeatherService:
     async def get_jwt(self) -> str:
         async with self._jwt_lock:
             if self._jwt_cache and time.time() < self._jwt_cache["exp"] - 60:
+                self._log("jwt cache hit")
                 return self._jwt_cache["token"]
 
             token, exp = self._generate_jwt()
             self._jwt_cache = {"token": token, "exp": exp}
+            self._log(f"jwt generated exp={exp}")
             return token
 
     def _generate_jwt(self) -> tuple[str, int]:
@@ -473,6 +481,7 @@ class WeatherService:
     def _load_private_key(self):
         pem_text = (self.cfg.private_key_pem or "").strip()
         if pem_text:
+            self._log("load private key from private_key_pem")
             return serialization.load_pem_private_key(pem_text.encode("utf-8"), password=None)
 
         key_path = (self.cfg.private_key_path or "").strip()
@@ -482,6 +491,7 @@ class WeatherService:
         path = Path(key_path)
         if not path.is_absolute():
             path = self.base_dir / path
+        self._log(f"load private key from path={path}")
         if not path.exists():
             raise FileNotFoundError(f"Private key file not found: {path}")
 
@@ -503,6 +513,10 @@ class WeatherService:
         if include_unit:
             params["unit"] = self.cfg.unit
         return params
+
+    def _log(self, message: str) -> None:
+        if self.cfg.debug_log:
+            print(f"[qweather_astrbot.service] {message}")
 
     async def _weather_now_openmeteo(self, location: str) -> Dict[str, Any]:
         input_loc = (location or self.cfg.default_location or "Beijing").strip()

@@ -64,5 +64,10 @@
     "type": "list",
     "description": "Keywords for auto weather detection",
     "default": ["??", "??", "??", "??", "??", "??", "weather", "forecast"]
+  },
+  "debug_log": {
+    "type": "bool",
+    "description": "Enable verbose debug logs for routing/key loading/API calls",
+    "default": false
   }
 }
