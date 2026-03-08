@@ -26,7 +26,7 @@ except ModuleNotFoundError:
     "openclaw",
     "和风天气插件（QWeather + Open-Meteo回退）",
     "1.0.0",
-    "https://github.com/your-org/qweather_astrbot",
+    "https://github.com/murphys7017/astrbot_plugin_qweather.git",
 )
 class QWeatherPlugin(Star):
     def __init__(self, context: Context, config: Dict[str, Any] | None = None):
@@ -407,4 +407,5 @@ class QWeatherPlugin(Star):
         if isinstance(v, str):
             return v.strip().lower() in {"1", "true", "yes", "y", "on"}
         return bool(v)
+
 
