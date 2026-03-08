@@ -16,7 +16,7 @@
 ## 插件结构
 
 - `main.py` AstrBot 插件入口，命令、意图识别与多轮上下文
-- `weather_plugin/service.py` 天气服务层（JWT、地理解析、QWeather/Open-Meteo 调用）
+- `qweather_plugin/service.py` 天气服务层（JWT、地理解析、QWeather/Open-Meteo 调用）
 - `_conf_schema.json` AstrBot 配置定义
 - `metadata.yaml` 插件元信息
 - `requirements.txt` Python 依赖
@@ -67,5 +67,6 @@ pip install -r requirements.txt
 - 需要 Python 3.10+。
 - QWeather 企业 API 必须配置正确的 Ed25519 私钥。
 - 预警接口使用 `weatheralert/v1/current/{lat}/{lon}`，依赖地点解析出经纬度。
+
 
 

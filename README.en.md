@@ -16,7 +16,7 @@ This repository is migrated from the openclaw-qweather skill to an AstrBot plugi
 ## Key Files
 
 - `main.py`: AstrBot plugin entry
-- `weather_plugin/service.py`: weather service logic
+- `qweather_plugin/service.py`: weather service logic
 - `_conf_schema.json`: plugin config schema
 - `metadata.yaml`: plugin metadata
 - `requirements.txt`: dependencies
@@ -49,3 +49,4 @@ pip install -r requirements.txt
 
 - `private_key_path`: absolute path of Ed25519 private key on server
 - `private_key_pem`: PEM key content. If set, it takes priority over `private_key_path`
+

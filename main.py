@@ -15,8 +15,8 @@ if str(plugin_dir) not in sys.path:
     # Force local plugin package to win over any globally installed module with same name.
     sys.path.insert(0, str(plugin_dir))
 
-from weather_plugin import WeatherService
-from weather_plugin.service import WeatherConfig
+from qweather_plugin import WeatherService
+from qweather_plugin.service import WeatherConfig
 
 
 @register(
@@ -413,5 +413,6 @@ class QWeatherPlugin(Star):
         if isinstance(v, str):
             return v.strip().lower() in {"1", "true", "yes", "y", "on"}
         return bool(v)
+
 
 
