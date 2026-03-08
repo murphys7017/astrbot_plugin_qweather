@@ -1,75 +1,46 @@
-# openclaw-qweather Weather Query Skill
+﻿# qweather_astrbot (AstrBot Plugin)
 
-## Project Overview
-
-This project is a weather query skill for the OpenClaw platform, integrating the QWeather (HeWeather) Enterprise API. It supports real-time weather, weather forecasts, minute-level precipitation, weather warnings, and lifestyle indices, with a high-availability fallback to Open-Meteo.
+This repository is migrated from the openclaw-qweather skill to an AstrBot plugin with Python implementation.
 
 ## Features
 
-- **Real-time Weather**: Supports multiple location formats (city name, coordinates, ID), provides current temperature, humidity, wind, etc.
-- **Weather Forecast**: 3/7/15-day daily forecasts, 24/72/168-hour hourly forecasts.
-- **Minute-level Precipitation**: 5-minute interval precipitation prediction for the next 2 hours.
-- **Weather Warnings**: Multiple types of weather disaster alerts.
-- **Lifestyle Indices**: Clothing, car wash, sports, UV, cold risk, and more.
-- **Automation**: Scheduled daily weather reports and warning notifications.
-- **High Availability**: Automatic fallback to Open-Meteo if the enterprise API fails.
+- `weather` / `天气`: current weather (with Open-Meteo fallback)
+- `forecast` / `预报`: daily forecast (3/7/15 days)
+- `hourly` / `小时预报`: hourly forecast (24h/72h/168h)
+- `rain` / `降水`: minutely precipitation
+- `warning` / `预警`: weather warnings
+- `indices` / `指数`: life indices
+- Auto-detect weather queries from normal chat messages
+- Multi-turn memory for follow-up queries (for example: \"What about tomorrow?\")
 
-## Directory Structure
+## Key Files
 
-- `lib/qweather_config.js`: API configuration (host, project ID, credential ID, private key path, etc.)
-- `lib/qweather_jwt_session.js`: JWT generation and caching
-- `lib/qweather_geo_tool.js`: Location resolution
-- `lib/qweather_weather_tool.js`: Real-time weather / daily forecast
-- `lib/qweather_hourly_tool.js`: Hourly forecast
-- `lib/qweather_precipitation_tool.js`: Minute-level precipitation
-- `lib/qweather_warning_tool.js`: Weather warnings
-- `lib/qweather_indices_tool.js`: Lifestyle indices
-- `lib/weather_now_openmeteo.js`: Open-Meteo fallback weather query
-- `lib/ed25519-private.txt`: Ed25519 private key (generate yourself)
+- `main.py`: AstrBot plugin entry
+- `weather_plugin/service.py`: weather service logic
+- `_conf_schema.json`: plugin config schema
+- `metadata.yaml`: plugin metadata
+- `requirements.txt`: dependencies
+- `lib/ed25519-private.txt`: Ed25519 private key file (kept as-is)
 
-## Quick Start
+## Install
 
-1. **Configure QWeather Enterprise API**  
-   Edit `lib/qweather_config.js` and fill in API Host, Project ID, Credential ID, Private Key Path, etc.
+```bash
+pip install -r requirements.txt
+```
 
-2. **Generate Ed25519 Private Key**  
-   ```
-   openssl genpkey -algorithm ED25519 -out ed25519-private.pem
-   openssl pkey -pubout -in ed25519-private.pem > ed25519-public.pem
-   ```
-   Save the private key content as `lib/ed25519-private.txt`.
+## Commands
 
-3. **Install Dependencies**
-   ```bash
-   npm install axios jose
-   ```
+- `/weather Beijing` or `/天气 北京`
+- `/forecast Shanghai 7` or `/预报 上海 7`
+- `/hourly Guangzhou 72h` or `/小时预报 广州 72h`
+- `/rain Hangzhou` or `/降水 杭州`
+- `/warning Chengdu` or `/预警 成都`
+- `/indices Nanjing 1d all` or `/指数 南京 1d all`
 
-4. **Usage Example**
-   ```js
-   const { weather_now } = require('./lib/qweather_weather_tool');
-   weather_now({ location: "Beijing" }).then(console.log);
-   ```
+## Notes
 
-## Main API Functions
+- Python 3.10+
+- Valid QWeather enterprise credentials and Ed25519 private key are required.
+- Warning API uses `weatheralert/v1/current/{lat}/{lon}` and requires resolved coordinates.
 
-- `weather_now({ location })` - Real-time weather
-- `weather_forecast({ location, days })` - Weather forecast
-- `weather_hourly({ location, hours })` - Hourly forecast
-- `weather_minutely_precipitation({ location })` - Minute-level precipitation
-- `weather_warning({ location })` - Weather warnings
-- `weather_indices({ location, days, type })` - Lifestyle indices
 
-## Dependencies
-
-- axios
-- jose (for JWT, partial)
-- Node.js 18+ (Ed25519 support required)
-
-## Task Scheduling Suggestions
-
-- Daily weather report (e.g., 8:00 AM)
-- Scheduled weather warning checks (e.g., 8:00, 14:00, 18:00)
-
-## License
-
-For learning and personal development only. For commercial use, please comply with QWeather and Open-Meteo API terms.

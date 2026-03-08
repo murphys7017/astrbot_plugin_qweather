@@ -1,75 +1,70 @@
-# openclaw-qweather 天气查询技能
+﻿# qweather_astrbot (AstrBot 插件)
 
-## 项目简介
+将原 openclaw-qweather Skill 改造为 AstrBot 插件，核心天气逻辑已迁移为 Python。
 
-本项目为 OpenClaw 平台开发的天气查询 Skill，集成了和风天气企业 API，支持实时天气、天气预报、分钟级降水、气象预警、生活指数等多种查询能力，并具备自动回退到 Open-Meteo 的高可用机制。
+## 功能
 
-## 主要特性
+- 实时天气 `weather/天气`（QWeather 失败时可回退 Open-Meteo）
+- 日预报 `forecast/预报`（3/7/15 天）
+- 逐小时预报 `hourly/小时预报`（24h/72h/168h）
+- 分钟级降水 `rain/降水`
+- 气象预警 `warning/预警`
+- 生活指数 `indices/指数`
+- 自动识别天气问句并回复（可配置开关和关键词）
+- 多轮上下文记忆（支持“明天呢/后天呢/那呢”沿用上文地点）
 
-- **实时天气**：支持多种位置格式（城市名、经纬度、ID），获取当前温度、湿度、风力等。
-- **天气预报**：支持3/7/15天日预报，24/72/168小时逐小时预报。
-- **分钟级降水**：2小时内每5分钟降水预测。
-- **气象预警**：多类型气象灾害预警。
-- **生活指数**：穿衣、洗车、运动、紫外线等多种生活建议。
-- **自动化服务**：定时推送每日天气报告和气象预警。
-- **高可用回退**：企业API异常时自动切换到 Open-Meteo。
+## 插件结构
 
-## 目录结构
+- `main.py` AstrBot 插件入口，命令、意图识别与多轮上下文
+- `weather_plugin/service.py` 天气服务层（JWT、地理解析、QWeather/Open-Meteo 调用）
+- `_conf_schema.json` AstrBot 配置定义
+- `metadata.yaml` 插件元信息
+- `requirements.txt` Python 依赖
+- `lib/ed25519-private.txt` Ed25519 私钥文件（仅保留此文件）
 
-- `lib/qweather_config.js`：API 配置（主机、项目ID、凭证ID、私钥路径等）
-- `lib/qweather_jwt_session.js`：JWT 生成与缓存
-- `lib/qweather_geo_tool.js`：位置解析
-- `lib/qweather_weather_tool.js`：实时天气/日预报
-- `lib/qweather_hourly_tool.js`：逐小时预报
-- `lib/qweather_precipitation_tool.js`：分钟级降水
-- `lib/qweather_warning_tool.js`：气象预警
-- `lib/qweather_indices_tool.js`：生活指数
-- `lib/weather_now_openmeteo.js`：Open-Meteo 备选天气查询
-- `lib/ed25519-private.txt`：Ed25519 私钥（需自行生成）
+## 安装依赖
 
-## 快速开始
+```bash
+pip install -r requirements.txt
+```
 
-1. **配置和风天气企业API参数**  
-   编辑 `lib/qweather_config.js`，填写 API Host、项目ID、凭证ID、私钥路径等。
+## AstrBot 配置项
 
-2. **生成 Ed25519 私钥**  
-   ```
-   openssl genpkey -algorithm ED25519 -out ed25519-private.pem
-   openssl pkey -pubout -in ed25519-private.pem > ed25519-public.pem
-   ```
-   将私钥内容保存为 `lib/ed25519-private.txt`。
+在 AstrBot 插件配置中填写：
 
-3. **安装依赖**
-   ```bash
-   npm install axios jose
-   ```
+- `api_host`: 你的企业 API Host（例如 `xxx.re.qweatherapi.com`）
+- `project_id`: QWeather Project ID
+- `credentials_id`: QWeather Credentials ID
+- `private_key_path`: Ed25519 私钥绝对路径（部署服务器上）
+- `default_location`: 默认位置（未传 location 时使用）
+- `lang`: 返回语言（默认 `zh`）
+- `unit`: 温度单位（`m` 公制 / `i` 英制）
+- `warning_local_time`: 预警是否使用本地时间（`true/false`，默认 `false`）
+- `openmeteo_fallback`: 实时天气失败时是否回退 Open-Meteo
+- `auto_detect_enabled`: 是否自动识别天气提问
+- `weather_keywords`: 自动识别时使用的关键词列表
 
-4. **调用示例**
-   ```js
-   const { weather_now } = require('./lib/qweather_weather_tool');
-   weather_now({ location: "北京" }).then(console.log);
-   ```
+## 命令用法
 
-## 主要API函数
+- `/weather 北京` 或 `/天气 北京`
+- `/forecast 上海 7` 或 `/预报 上海 7`
+- `/hourly 广州 72h` 或 `/小时预报 广州 72h`
+- `/rain 杭州` 或 `/降水 杭州`
+- `/warning 成都` 或 `/预警 成都`
+- `/indices 南京 1d all` 或 `/指数 南京 1d all`
 
-- `weather_now({ location })` - 实时天气
-- `weather_forecast({ location, days })` - 天气预报
-- `weather_hourly({ location, hours })` - 逐小时预报
-- `weather_minutely_precipitation({ location })` - 分钟级降水
-- `weather_warning({ location })` - 气象预警
-- `weather_indices({ location, days, type })` - 生活指数
+## 自动识别天气提问
 
-## 依赖
+开启 `auto_detect_enabled=true` 后，普通消息中包含关键词（如“天气”“气温”“下雨”“预报”）会自动触发对应查询。
 
-- axios
-- jose (仅部分 JWT 相关脚本)
-- Node.js 18+ (需支持 Ed25519)
+位置提取规则为轻量正则匹配（如“北京天气怎么样”），若未提取到地点则回退到 `default_location`。
 
-## 任务调度建议
+同一会话会记忆最近地点，支持“明天呢”“后天呢”“那呢”这类追问。
 
-- 每日天气报告（如每天8点）
-- 定时气象预警检查（如8点、14点、18点）
+## 注意
 
-## 许可证
+- 需要 Python 3.10+。
+- QWeather 企业 API 必须配置正确的 Ed25519 私钥。
+- 预警接口使用 `weatheralert/v1/current/{lat}/{lon}`，依赖地点解析出经纬度。
 
-仅供学习与个人开发使用，商用请遵守和风天气及 Open-Meteo API 协议。
+

@@ -1,0 +1,86 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qweather_astrbot config",
+  "type": "object",
+  "properties": {
+    "api_host": {
+      "type": "string",
+      "title": "QWeather API Host",
+      "default": "xxx.re.qweatherapi.com"
+    },
+    "project_id": {
+      "type": "string",
+      "title": "QWeather Project ID",
+      "default": ""
+    },
+    "credentials_id": {
+      "type": "string",
+      "title": "QWeather Credentials ID",
+      "default": ""
+    },
+    "private_key_path": {
+      "type": "string",
+      "title": "Private Key Path",
+      "default": "/path/to/ed25519-private.pem"
+    },
+    "default_location": {
+      "type": "string",
+      "title": "默认地点",
+      "default": "北京"
+    },
+    "lang": {
+      "type": "string",
+      "title": "返回语言",
+      "default": "zh"
+    },
+    "unit": {
+      "type": "string",
+      "title": "温度单位",
+      "default": "m",
+      "enum": [
+        "m",
+        "i"
+      ]
+    },
+    "warning_local_time": {
+      "type": "boolean",
+      "title": "预警使用本地时间(localTime)",
+      "default": false
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "title": "请求超时(秒)",
+      "default": 15,
+      "minimum": 5,
+      "maximum": 60
+    },
+    "openmeteo_fallback": {
+      "type": "boolean",
+      "title": "实时天气失败时回退 Open-Meteo",
+      "default": true
+    },
+    "auto_detect_enabled": {
+      "type": "boolean",
+      "title": "自动识别天气提问",
+      "default": true
+    },
+    "weather_keywords": {
+      "type": "array",
+      "title": "天气关键词",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "天气",
+        "气温",
+        "温度",
+        "下雨",
+        "降雨",
+        "降水",
+        "weather",
+        "forecast"
+      ]
+    }
+  }
+}
+
