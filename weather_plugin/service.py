@@ -53,7 +53,8 @@ class WeatherConfig:
     project_id: str
     credentials_id: str
     private_key_path: str
-    default_location: str
+    private_key_pem: str = ""
+    default_location: str = "Beijing"
     lang: str = "zh"
     unit: str = "m"
     warning_local_time: bool = False
@@ -470,9 +471,20 @@ class WeatherService:
         return token, payload["exp"]
 
     def _load_private_key(self):
-        path = Path(self.cfg.private_key_path)
+        pem_text = (self.cfg.private_key_pem or "").strip()
+        if pem_text:
+            return serialization.load_pem_private_key(pem_text.encode("utf-8"), password=None)
+
+        key_path = (self.cfg.private_key_path or "").strip()
+        if not key_path:
+            raise ValueError("Missing private key config: set private_key_pem or private_key_path")
+
+        path = Path(key_path)
         if not path.is_absolute():
             path = self.base_dir / path
+        if not path.exists():
+            raise FileNotFoundError(f"Private key file not found: {path}")
+
         key_data = path.read_bytes()
         return serialization.load_pem_private_key(key_data, password=None)
 

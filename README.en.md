@@ -44,3 +44,8 @@ pip install -r requirements.txt
 - Warning API uses `weatheralert/v1/current/{lat}/{lon}` and requires resolved coordinates.
 
 
+
+## Config
+
+- `private_key_path`: absolute path of Ed25519 private key on server
+- `private_key_pem`: PEM key content. If set, it takes priority over `private_key_path`

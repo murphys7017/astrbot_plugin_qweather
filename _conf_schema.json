@@ -17,7 +17,12 @@
   "private_key_path": {
     "type": "string",
     "description": "Ed25519 private key absolute path on server",
-    "default": "/path/to/ed25519-private.pem"
+    "default": "/home/aki/key/ed25519-private.pem"
+  },
+  "private_key_pem": {
+    "type": "string",
+    "description": "Ed25519 private key content in PEM format. If set, it takes priority over private_key_path",
+    "default": ""
   },
   "default_location": {
     "type": "string",

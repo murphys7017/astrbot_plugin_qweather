@@ -36,6 +36,7 @@ pip install -r requirements.txt
 - `project_id`: QWeather Project ID
 - `credentials_id`: QWeather Credentials ID
 - `private_key_path`: Ed25519 私钥绝对路径（部署服务器上）
+- `private_key_pem`: Paste full PEM key content here. If set, it takes priority over `private_key_path`
 - `default_location`: 默认位置（未传 location 时使用）
 - `lang`: 返回语言（默认 `zh`）
 - `unit`: 温度单位（`m` 公制 / `i` 英制）
