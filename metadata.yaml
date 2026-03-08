@@ -1,4 +1,4 @@
-﻿name: qweather_astrbot
+name: qweather_astrbot
 version: 1.0.0
 desc: 和风天气查询插件，支持实时天气、预报、预警、分钟级降水、生活指数，并可自动识别天气提问。
 author: openclaw

@@ -1,4 +1,4 @@
-﻿# qweather_astrbot (AstrBot Plugin)
+# qweather_astrbot (AstrBot Plugin)
 
 This repository is migrated from the openclaw-qweather skill to an AstrBot plugin with Python implementation.
 

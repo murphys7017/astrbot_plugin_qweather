@@ -1,4 +1,4 @@
-﻿# qweather_astrbot (AstrBot 插件)
+# qweather_astrbot (AstrBot 插件)
 
 将原 openclaw-qweather Skill 改造为 AstrBot 插件，核心天气逻辑已迁移为 Python。
 
