@@ -39,6 +39,7 @@ class QWeatherPlugin(Star):
     @filter.command("weather")
     @filter.command("天气")
     async def cmd_weather(self, event: AstrMessageEvent, location: str = ""):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_now(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "now")
@@ -47,6 +48,7 @@ class QWeatherPlugin(Star):
     @filter.command("forecast")
     @filter.command("预报")
     async def cmd_forecast(self, event: AstrMessageEvent, location: str = "", days: int = 3):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_forecast(loc or None, days=days)
         self._remember_context(event, self._resolve_location_name(data, loc), "forecast")
@@ -55,6 +57,7 @@ class QWeatherPlugin(Star):
     @filter.command("hourly")
     @filter.command("小时预报")
     async def cmd_hourly(self, event: AstrMessageEvent, location: str = "", hours: str = "24h"):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_hourly(loc or None, hours=hours)
         self._remember_context(event, self._resolve_location_name(data, loc), "hourly")
@@ -63,6 +66,7 @@ class QWeatherPlugin(Star):
     @filter.command("rain")
     @filter.command("降水")
     async def cmd_rain(self, event: AstrMessageEvent, location: str = ""):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_minutely_precipitation(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "rain")
@@ -71,6 +75,7 @@ class QWeatherPlugin(Star):
     @filter.command("warning")
     @filter.command("预警")
     async def cmd_warning(self, event: AstrMessageEvent, location: str = ""):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_warning(loc or None)
         self._remember_context(event, self._resolve_location_name(data, loc), "warning")
@@ -79,6 +84,7 @@ class QWeatherPlugin(Star):
     @filter.command("indices")
     @filter.command("指数")
     async def cmd_indices(self, event: AstrMessageEvent, location: str = "", days: str = "1d", index_type: str = "all"):
+        event.stop_event()
         loc = location or self._get_session_location(event)
         data = await self.service.weather_indices(loc or None, days=days, index_type=index_type)
         self._remember_context(event, self._resolve_location_name(data, loc), "indices")
@@ -102,6 +108,7 @@ class QWeatherPlugin(Star):
             return
 
         location = self._extract_location(msg) or self._get_session_location(event)
+        event.stop_event()
 
         if follow_up and not self._is_weather_query(msg):
             reply = await self._handle_follow_up(event, msg, location)
