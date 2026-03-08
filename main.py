@@ -10,15 +10,13 @@ from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star, register
 
-try:
-    from weather_plugin import WeatherService
-    from weather_plugin.service import WeatherConfig
-except ModuleNotFoundError:
-    plugin_dir = Path(__file__).resolve().parent
-    if str(plugin_dir) not in sys.path:
-        sys.path.insert(0, str(plugin_dir))
-    from weather_plugin import WeatherService
-    from weather_plugin.service import WeatherConfig
+plugin_dir = Path(__file__).resolve().parent
+if str(plugin_dir) not in sys.path:
+    # Force local plugin package to win over any globally installed module with same name.
+    sys.path.insert(0, str(plugin_dir))
+
+from weather_plugin import WeatherService
+from weather_plugin.service import WeatherConfig
 
 
 @register(
